@@ -1,0 +1,55 @@
+Consistency: common example is ATM withdrawals (shouldn't go negative)
+
+"Ated" should probably have been "Eaten"
+
+
+Example problems for Transactions pdf
+
+1a: T1 has arrow to T2, T3 has arrow to T2. No other arrows (T3 and T1 have no overlap at all, T2 comes entirely after T1, T2 comes entirely after T3 with the exception of nonconflicting W(D))
+Reminder: arrow if any of T_i's actions precedes one of T_j's and is in conflict (ie one or both are writes, different transactions, same resource)
+
+1b: Yes, because the precedence or dependency graph has no cycles. The conflict-equivalent serial schedules are:
+First: we're looking for serial schedules so it's sufficient to just list the transaction order. There are many more non-serial schedules too!
+Conflict-equivalent serial schedules:
+T1 T3 T2 
+T3 T1 T2
+More specifically the following do not work because...
+T1 T2 T3 -- T3 must come before T2 (it should read C before T2 writes it)
+T2 T1 T3 -- T2 must come after both T1 (dependency on A,B) and T3 (dependency on C)
+T2 T3 T1 -- see previous
+T3 T2 T1 -- T2 must come after T1 (dependency on A,B)
+
+So there are only two conflict-equivalent serial schedules.
+Haven't checked for a formal proof, but pretty sure this is just any topological ordering (ie if there's an edge A->B, A must come before B)
+
+1a(second?): 
+T1->T2 (T1 reads B before T2 writes B)
+T2->T1 (T2 reads A before T1 writes A)
+T3->T1 (T3 reads A before T1 writes A)
+T4->T2 (T4 reads B before T2 writes B)
+A few things to note:
+edges are not drawn for two reads - these are not a conflict
+Cycle from T1<->T2
+T3 and T4 don't have any writes so they can't conflict with each other. Similarly they also do not share any resources (so also no conflict possible). 
+
+1b(second): Not conflict serializable - there is a cycle between T1 and T2 in dependency graph.
+
+2a:
+These are essentially serially executed (you'll note T2 tries to lock B and waits until the end of T1)
+T1: B=B*10, F=B*100
+so first B goes from 3->30
+F goes from 300->3000
+Then T2 prints F + B
+that's 3000 + 30: 3030
+
+2b: 
+2PL: No locks acquired (or upgraded) after the first lock is released (or downgraded), so yes.
+Strict 2PL: Exclusive locks held until end of transaction, so yes.
+
+Although question doesn't ask it, what about:
+Rigorous 2PL: All locks (both shared and exclusive) held until the end, so yes.
+Conservative 2PL: All locks allocated at start of transaction, so no - Lock_X(F) in T1 is later.
+
+Final note: you can combine conservative with the others, ie conservative rigorous 2PL would be an lock-all and release-all approach.
+
+
